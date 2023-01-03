@@ -5,19 +5,21 @@ import websockets
 
 
 class Grid:
-    def __init__(self, name, usedProcess):
+    def __init__(self, name, usedProcess, pendingProcess, remainingProcess):
         self.name = name
         self.usedProcess = usedProcess
+        self.pendingProcess = pendingProcess
+        self.remainingProcess = remainingProcess
 
 
 def get_data():
     grids = []
 
-    grids.append(Grid('G1', np.random.randint(10, 100)))
-    grids.append(Grid('G2', np.random.randint(10, 100)))
-    grids.append(Grid('G3', np.random.randint(10, 100)))
-    grids.append(Grid('G4', np.random.randint(10, 100)))
-    grids.append(Grid('G5', np.random.randint(10, 100)))
+    grids.append(Grid('G1', np.random.randint(10, 55), np.random.randint(1, 5), np.random.randint(5, 40)))
+    grids.append(Grid('G2', np.random.randint(10, 65), np.random.randint(1, 10), np.random.randint(5, 25)))
+    grids.append(Grid('G3', np.random.randint(10, 75), np.random.randint(1, 5), np.random.randint(5, 20)))
+    grids.append(Grid('G4', np.random.randint(10, 85), np.random.randint(1, 5), np.random.randint(5, 10)))
+    grids.append(Grid('G5', np.random.randint(10, 35), np.random.randint(1, 15), np.random.randint(5, 50)))
 
     return grids
 
