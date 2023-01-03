@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <style >
+  svg {
+    font: 10px helvetica;
+    shape-rendering: crispEdges;
+  }
+
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #c1c1c1;
+  }
+
+  </style>
+
+</head>
+<body>
+<h2>Overall Grid Status</h2>
+<script >
+
+    // Step 2
+    var margin = 50;
+    var width = 600;
+        height = 300;
+
+    var svg = d3.select("body")
+      .append("svg")
+      .attr("width", width + margin + 40 )
+      .attr("height", height + margin + 20)
+      .append("g")
+      .attr("transform", "translate(" + (margin+30)/2 +  "," + margin/2 + ")")
+
+    // Step 1
+    var data = [
+     {name:'G1', usedProcess:55, pendingProcess:5, remainingProcess:40},
+     {name:'G2', usedProcess:65, pendingProcess:10, remainingProcess:25},
+     {name:'G3', usedProcess:75, pendingProcess:5, remainingProcess:20},
+     {name:'G4', usedProcess:85, pendingProcess:5, remainingProcess:10},
+     {name:'G5', usedProcess:35, pendingProcess:15, remainingProcess:50}
+      ];
+
+    var colors = ['#4095C6','#D5A12A','#A5DC57'];
+
+    var dataset = d3.layout.stack()(["usedProcess", "pendingProcess", "remainingProcess"].map(function(e) {
+      return data.map(function(d) {
+        return {x: d.name, y: +d[e]};
+      });
+    }));
+
+    // Step 3
+    var xScale = d3.scale.ordinal()
+      .domain(dataset[0].map(function(d) { return d.x; }))
+      .rangeRoundBands([0, width], 0.5);
+
+    var yScale = d3.scale.linear()
+      .domain([0, 100])
+      .range([height, 0]);
+
+
+    // Step 4
+    var yAxis = d3.svg.axis()
+      .scale(yScale)
+      .orient("left")
+      .ticks(10)
+      .tickSize(-width, 0, 0)
+      .tickFormat( function(d) { return d + " % "  } );
+
+    var xAxis = d3.svg.axis()
+      .scale(xScale)
+      .orient("bottom")
+      //.tickFormat(d3.time.format("%Y"));
+
+    svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis);
+
+    svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+    // Step 5
+    // X label
+    svg.append('text')
+        .attr('x', width/2)
+        .attr('y', height + 30)
+        .attr('text-anchor', 'middle')
+        .style('font-family', 'Helvetica')
+        .style('font-size', 12)
+        .text('GRID');
+
+    // Y label
+    svg.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('transform', 'translate(-30,' + height/2 + ')rotate(-90)')
+        .style('font-family', 'Helvetica')
+        .style('font-size', 12)
+        .text('% Used');
+
+    // Step 6
+    var groups = svg.selectAll("g.bars")
+      .data(dataset)
+      .enter().append("g")
+      .attr("class", "bars")
+      .style("fill", function(d, i) { return colors[i]; })
+      //.style("stroke", "#000");
+
+    var rect = groups.selectAll("rect")
+      .data(function(d) { return d; })
+      .enter()
+      .append("rect")
+      .attr("x", function(d) { return xScale(d.x); })
+      .attr("y", function(d) { return yScale(d.y0 + d.y); })
+      .attr("height", function(d) { return yScale(d.y0) - yScale(d.y0 + d.y); })
+      .attr("width", xScale.rangeBand())
+
+ var socket = new WebSocket("ws://localhost:8000");
+    socket.onmessage = function(event) {
+        message = JSON.parse(event.data);
+        console.log(message);
+
+        data.forEach(item => {
+           if (item.name === message.name){
+                item.usedProcess = message.usedProcess;
+                item.pendingProcess = message.pendingProcess;
+                item.remainingProcess = message.remainingProcess;
+              }
+        });
+        console.log(data);
+
+    // Use a transition to smoothly animate the update
+    d3.selectAll(".bars")
+      .data(data)
+      .transition()
+      .duration(500)
+      .attr("y", function(d) { yScale.domain([0, 100]); return yScale(d.usedProcess); })
+      .attr("height", function(d) { return height - yScale(d.usedProcess); });
+
+   } // end of socket
+</script>
+</body>
+</html>
